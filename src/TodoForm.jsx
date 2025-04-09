@@ -4,7 +4,7 @@ function TodoForm({handleAdd}) {
 
     const handleAddTodo = (e) => {
         e.preventDefault();
-        console.dir(e.target.title);
+        // console.dir(e.target.title);
         const title = e.target.title.value;
         todoTitleInput.current.focus();
         handleAdd(title);
