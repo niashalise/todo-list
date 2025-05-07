@@ -14,7 +14,7 @@ function TodoList({ todoList, onCompleteTodo, onUpdateTodo }) {
     <ul>
       {filteredTodoList.map((todo) => (
         <TodoListItem
-          key={todo.key}
+          key={todo.id}
           todo={todo}
           onCompleteTodo={onCompleteTodo}
           onUpdateTodo={onUpdateTodo}
