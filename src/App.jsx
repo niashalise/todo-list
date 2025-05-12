@@ -1,19 +1,10 @@
 import './App.css';
 import TodoList from './features/TodoList/TodoList';
 import TodoForm from '../src/features/TodoForm';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import TodosViewForm from './features/TodosViewForm';
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
-
-function encodeUrl({ sortField, sortDirection, queryString }) {
-  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
-  let searchQuery = '';
-  if (searchQuery) {
-    searchQuery = `&filterByFormula=SEARCH("${queryString}",+title)`;
-  }
-  return encodeURI(`${url}?${sortQuery}${searchQuery}`);
-}
 
 function App() {
   const [todoList, setTodoList] = useState([]);
@@ -24,6 +15,18 @@ function App() {
   const [sortField, setSortField] = useState('createdTime');
   const [sortDirection, setSortDirection] = useState('desc');
   const [queryString, setQueryString] = useState('');
+
+  const encodeUrl = useCallback(
+    () => {
+      let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+      let searchQuery = '';
+      if (searchQuery) {
+        searchQuery = `&filterByFormula=SEARCH("${queryString}",+title)`;
+      }
+      return encodeURI(`${url}?${sortQuery}${searchQuery}`);
+    },
+    [sortField, sortDirection, queryString]
+  );
 
   const handleAdd = async (workingTodo) => {
     console.log('Working Todo: ', workingTodo);
@@ -48,10 +51,7 @@ function App() {
     try {
       setIsSaving(true);
       console.log('Payload', payload);
-      const resp = await fetch(
-        encodeUrl({ sortDirection, sortField, queryString }),
-        options
-      );
+      const resp = await fetch(encodeUrl(), options);
       console.log(resp);
       if (!resp.ok) {
         throw new Error(resp.message);
@@ -107,10 +107,7 @@ function App() {
     };
 
     try {
-      const resp = await fetch(
-        encodeUrl({ sortDirection, sortField, queryString }),
-        options
-      );
+      const resp = await fetch(encodeUrl(), options);
       if (!resp.ok) {
         throw new Error(resp.message);
       }
@@ -153,10 +150,7 @@ function App() {
       body: JSON.stringify(payload),
     };
     try {
-      const resp = await fetch(
-        encodeUrl({ sortDirection, sortField, queryString }),
-        options
-      );
+      const resp = await fetch(encodeUrl(), options);
       if (!resp.ok) {
         throw new Error(resp.message);
       }
@@ -215,10 +209,7 @@ function App() {
         headers: { Authorization: token },
       };
       try {
-        const resp = await fetch(
-          encodeUrl({ sortDirection, sortField }),
-          options
-        );
+        const resp = await fetch(encodeUrl(), options);
         console.log(resp);
         if (resp.ok === false) {
           throw new Error(resp.message);
