@@ -3,6 +3,7 @@ import TodoList from './features/TodoList/TodoList';
 import TodoForm from '../src/features/TodoForm';
 import { useEffect, useState, useCallback } from 'react';
 import TodosViewForm from './features/TodosViewForm';
+import styles from './App.module.css'
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 
@@ -236,7 +237,7 @@ function App() {
   }, [sortDirection, sortField, queryString]);
   // console.log("Todo List", todoList)
   return (
-    <div>
+    <div className={styles.content}>
       <h1>My Todos</h1>
       <TodoForm handleAdd={handleAdd} isSaving={isSaving} />
       <TodoList
@@ -259,7 +260,7 @@ function App() {
         queryString={queryString}
       />
       {errorMessage ? (
-        <div>
+        <div className={styles.errorDiv}>
           <hr />
           <p>{errorMessage}</p>
           <button
