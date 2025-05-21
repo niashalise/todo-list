@@ -18,6 +18,15 @@ function TodoForm({handleAdd, isSaving}) {
 
     const todoTitleInput = useRef("");
 
+    // const StyledButton = styled.button`
+    //   & {
+    //     padding: 3px;
+    //     margin: 0px 10px 5px 5px;
+    //     background-color: pink;
+    //     border: 2px solid hotpink;
+    //   }
+    // `;
+
     return (
       <form onSubmit={handleAddTodo}>
         <TextInputWithLabel

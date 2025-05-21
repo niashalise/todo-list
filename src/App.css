@@ -1,0 +1,24 @@
+h1 {
+    font-family: "Bad Script", sans-serif;
+} 
+
+li, label, select, button {
+    font-family: "Kite One", sans-serif;
+}
+
+body {
+    background-color: honeydew;
+}
+
+select {
+    padding: 3px;
+    margin: 0px 10px 5px 5px;
+    background-color: pink;
+    border: 2px solid hotpink;
+}
+
+button:hover, select:hover {
+    border: 2px solid pink;
+    background-color: hotpink;
+}
+
