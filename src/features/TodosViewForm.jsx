@@ -1,4 +1,10 @@
 import { useState, useEffect } from 'react';
+import styled from 'styled-components';
+
+const StyledInput = styled.input`
+  padding: 4px 2px;
+  margin-bottom: 8px;
+`
 
 function preventRefresh(e) {
   e.preventDefault();
@@ -27,7 +33,7 @@ function TodosViewForm({
       <form onSubmit={preventRefresh}>
         <div>
           <label htmlFor="search">Search Todos: </label>
-          <input
+          <StyledInput
             type="text"
             value={localQueryString}
             onChange={(e) => setLocalQueryString(e.target.value)}
