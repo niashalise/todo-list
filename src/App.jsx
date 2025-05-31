@@ -4,6 +4,13 @@ import TodoForm from '../src/features/TodoForm';
 import { useEffect, useState, useCallback } from 'react';
 import TodosViewForm from './features/TodosViewForm';
 import styles from './App.module.css'
+import {
+  reducer as todosReducer,
+  actions as todoActions,
+  initialState as initialTodosState
+} from './reducers/todos.reducer'
+
+const [todoState, dispatch] = useReducer(todosReducer, initialTodosState)
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 
@@ -50,7 +57,8 @@ function App() {
       body: JSON.stringify(payload),
     };
     try {
-      setIsSaving(true);
+      // setIsSaving(true);
+      dispatch({ todoState.isSaving: true })
       console.log('Payload', payload);
       const resp = await fetch(encodeUrl(), options);
       console.log(resp);
@@ -58,33 +66,37 @@ function App() {
         throw new Error(resp.message);
       }
       const { records } = await resp.json();
-      const savedTodo = {
-        id: records[0].id,
-        title: records[0].fields.title,
-        isCompleted: records[0].fields.isCompleted,
-      };
-      if (!records[0].fields.isCompleted) {
-        savedTodo.isCompleted = false;
-      }
-      setTodoList([...todoList, savedTodo]);
+      dispatch({ type: 'addTodo', action: records})
+      // const savedTodo = {
+      //   id: records[0].id,
+      //   title: records[0].fields.title,
+      //   isCompleted: records[0].fields.isCompleted,
+      // };
+      // if (!records[0].fields.isCompleted) {
+      //   savedTodo.isCompleted = false;
+      // }
+      // setTodoList([...todoList, savedTodo]);
     } catch (error) {
-      setErrorMessage(error);
-      console.log(errorMessage);
+      dispatch({action: error})
+      // setErrorMessage(error);
+      // console.log(errorMessage);
     } finally {
-      setIsSaving(false);
+      dispatch({todoState.isSaving: false})
+      // setIsSaving(false);
     }
   };
 
   async function completeTodo(id) {
-    const originalTodo = todoList.find((todo) => todo.id === id);
-    const updatedTodo = todoList.map((todo) => {
-      if (todo.id === id) {
-        return { ...todo, isCompleted: true };
-      }
-      return todo;
-    });
+    // const originalTodo = todoList.find((todo) => todo.id === id);
+    // const updatedTodo = todoList.map((todo) => {
+    //   if (todo.id === id) {
+    //     return { ...todo, isCompleted: true };
+    //   }
+    //   return todo;
+    // });
     // console.log("Complete: ", todoList, updatedTodo)
-    setTodoList(updatedTodo);
+    // setTodoList(updatedTodo);
+    dispatch({type: 'completeTodo'})
 
     const payload = {
       records: [
@@ -158,34 +170,36 @@ function App() {
       const { records } = await resp.json();
       console.log('Records: ', records);
 
-      const updatedTodo = {
-        id: records[0]['id'],
-        ...records[0].fields,
-      };
-      if (!records[0].fields.isCompleted) {
-        updatedTodo.isCompleted = false;
-      }
+      // const updatedTodo = {
+      //   id: records[0]['id'],
+      //   ...records[0].fields,
+      // };
+      // if (!records[0].fields.isCompleted) {
+      //   updatedTodo.isCompleted = false;
+      // }
       // console.log("Updated todo: ", updatedTodo)
-      const updatedTodos = todoList.map((todo) => {
-        if (todo.id === updatedTodo.id) {
-          // console.log("It\'s true", updatedTodo)
-          return { ...updatedTodo };
-        } else {
-          return todo;
-        }
-      });
-      setTodoList([...updatedTodos]);
+      // const updatedTodos = todoList.map((todo) => {
+      //   if (todo.id === updatedTodo.id) {
+      //     // console.log("It\'s true", updatedTodo)
+      //     return { ...updatedTodo };
+      //   } else {
+      //     return todo;
+      //   }
+      // });
+      // setTodoList([...updatedTodos]);
+      dispatch({type: 'updateTodo', action: editedTodo})
     } catch (error) {
-      console.log(error.message);
-      setErrorMessage(`${error.message}. Reverting todo...`);
-      const revertedTodos = todoList.map((todo) => {
-        if (todo.id === originalTodo.id) {
-          return { ...originalTodo };
-        } else {
-          return todo;
-        }
-      });
-      setTodoList([...revertedTodos]);
+      dispatch({type: 'revertTodo', action: originalTodo})
+      // console.log(error.message);
+      // setErrorMessage(`${error.message}. Reverting todo...`);
+      // const revertedTodos = todoList.map((todo) => {
+      //   if (todo.id === originalTodo.id) {
+      //     return { ...originalTodo };
+      //   } else {
+      //     return todo;
+      //   }
+      // });
+      // setTodoList([...revertedTodos]);
     } finally {
       setIsSaving(false);
     }
@@ -203,7 +217,7 @@ function App() {
 
   useEffect(() => {
     const fetchTodos = async () => {
-      setIsLoading(true);
+      setIsLoading(dispatch({ type: todoActions.fetchTodos}));
       const options = {
         method: 'GET',
         body: JSON.stringify(),
@@ -216,19 +230,20 @@ function App() {
           throw new Error(resp.message);
         }
         const data = await resp.json();
+        dispatch({type: 'loadTodos', action: {records}})
         // console.log(data);
-        const todoRecords = data.records.map((record) => {
-          const todo = {
-            id: record.id,
-            createdTime: record.createdTime,
-            title: record.fields.title,
-          };
-          return todo;
-        });
-        setTodoList([...todoRecords]);
-        console.log(todoRecords);
+        // const todoRecords = data.records.map((record) => {
+        //   const todo = {
+        //     id: record.id,
+        //     createdTime: record.createdTime,
+        //     title: record.fields.title,
+        //   };
+        //   return todo;
+        // });
+        // setTodoList([...todoRecords]);
+        // console.log(todoRecords);
       } catch (error) {
-        setErrorMessage(error.message);
+        dispatch(setLoadError({action: {error}}))
       } finally {
         setIsLoading(false);
       }
@@ -239,7 +254,7 @@ function App() {
   return (
     <div className={styles.content}>
       <h1>My Todos</h1>
-      <TodoForm handleAdd={handleAdd} isSaving={isSaving} />
+      <TodoForm handleAdd={addTodo} isSaving={todoState.isSaving} />
       <TodoList
         todoList={todoList}
         onCompleteTodo={completeTodo}
@@ -267,7 +282,7 @@ function App() {
             type="button"
             onClick={() => {
               setIsShowing((prevState) => !prevState);
-              setErrorMessage('');
+              dispatch({type: 'clearError'})
             }}
           >
             Dismiss
