@@ -16,8 +16,6 @@ const actions = {
 };
 
 function reducer(state, action) {
-  state = initialState;
-
   switch (action.type) {
     case actions.fetchTodos:
       return {
@@ -25,11 +23,12 @@ function reducer(state, action) {
         isLoading: true,
       };
     case actions.loadTodos:
-      const todoRecords = action.records.map((record) => {
+      const todoRecords = action.action.records.map((record) => {
         const todo = {
           id: record.id,
           createdTime: record.createdTime,
           title: record.fields.title,
+          isCompleted: !!record.fields.isCompleted
         };
         return todo;
       });
@@ -39,9 +38,10 @@ function reducer(state, action) {
         isLoading: false,
       };
     case actions.setLoadError:
+      console.log("action: ", action);
       return {
         ...state,
-        errorMessage: action.error.message,
+        errorMessage: action.action.message,
         isLoading: false,
       };
     case actions.startRequest:
@@ -50,14 +50,16 @@ function reducer(state, action) {
         isSaving: true,
       };
     case actions.addTodo:
+      console.log("action: ", action);
       const savedTodo = {
-        id: records[0].id,
-        title: records[0].fields.title,
-        isCompleted: records[0].fields.isCompleted,
+        id: action.action[0].id,
+        title: action.action[0].fields.title,
+        isCompleted: action.action[0].fields.isCompleted,
       };
-      if (!records[0].fields.isCompleted) {
+      if (!action.action[0].fields.isCompleted) {
         savedTodo.isCompleted = false;
       }
+      console.log("state: ", state);
       return {
         ...state,
         todoList: [...state.todoList, savedTodo],
@@ -69,24 +71,17 @@ function reducer(state, action) {
         isLoading: false,
         isSaving: false,
       };
-    case actions.setLoadError:
-      return {
-        ...state,
-        errorMessage: action.error.message,
-        isLoading: false,
-      };
     case actions.updateTodo:
-      const originalTodo = todoList.find(
-        (todo) => todo.id === action.editedTodo.id
+      console.log("action: ", action)
+      const originalTodo = state.todoList.find(
+        (todo) => todo.id === action.action
       );
-      const updatedTodo = {
-        id: records[0]['id'],
-        ...records[0].fields,
-      };
-      if (!records[0].fields.isCompleted) {
+      const updatedTodo = action.action;
+      console.log("updated todo: ", updatedTodo);
+      if (!updatedTodo.isCompleted) {
         updatedTodo.isCompleted = false;
       }
-      const updatedTodos = todoList.map((todo) => {
+      const updatedTodos = state.todoList.map((todo) => {
         if (todo.id === updatedTodo.id) {
           return { ...updatedTodo };
         } else {
@@ -95,27 +90,25 @@ function reducer(state, action) {
       });
       const updatedState = {
         ...state,
-        ...updatedTodos,
+        todoList: updatedTodos,
       };
       if (action.error) {
         updatedTodos = {
           errorMessage: action.error.message,
         };
       }
-      return {
-        ...state,
-        updatedState,
-      };
+      return updatedState;
     case actions.completeTodo:
-      const completedTodo = todoList.map((todo) => {
-        if (todo.id === action.id) {
+      const completedTodo = state.todoList.map((todo) => {
+        if (todo.id === action.action) {
+          // console.log("isCompleted: ", completedTodo)
           return { ...todo, isCompleted: true };
         }
         return todo;
       });
       return {
         ...state,
-        todoList: { ...completedTodo },
+        todoList: completedTodo,
       };
     case actions.revertTodo:
         const revertedTodos = todoList.map((todo) => {
@@ -127,13 +120,18 @@ function reducer(state, action) {
         })
       return {
         ...state,
-        todoList: { ...revertedTodos}
+        todoList: revertedTodos
       };
     case actions.clearError:
       return {
         ...state,
         errorMessage: ""
       };
+    case actions.isSaving:
+      return {
+        ...state,
+        isSaving: action.action
+      }
     default:
       return state;
   }
@@ -146,4 +144,4 @@ const initialState = {
   errorMessage: '',
 };
 
-module.exports = { initialState, actions };
+export { initialState, actions, reducer }
