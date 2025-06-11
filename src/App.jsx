@@ -1,14 +1,18 @@
 import './App.css';
-import TodoList from './features/TodoList/TodoList';
-import TodoForm from '../src/features/TodoForm';
 import { useEffect, useState, useCallback, useReducer } from 'react';
-import TodosViewForm from './features/TodosViewForm';
 import styles from './App.module.css';
 import {
   reducer as todosReducer,
   actions as todoActions,
   initialState as initialTodosState,
 } from './reducers/todos.reducer';
+import Header from './shared/Header';
+import TodosPage from './pages/TodosPage';
+import { Routes, useLocation } from 'react-router';
+import { Route } from 'react-router';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
+
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 
@@ -18,6 +22,8 @@ function App() {
   const [sortDirection, setSortDirection] = useState('desc');
   const [queryString, setQueryString] = useState('');
   const [todoState, dispatch] = useReducer(todosReducer, initialTodosState);
+  const [title, setTitle] = useState('Todo List');
+  
 
   const encodeUrl = useCallback(() => {
     let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
@@ -108,7 +114,9 @@ function App() {
   }
 
   const updateTodo = async (editedTodo) => {
-    const originalTodo = todoState.todoList.find((todo) => todo.id === editedTodo.id);
+    const originalTodo = todoState.todoList.find(
+      (todo) => todo.id === editedTodo.id
+    );
 
     const payload = {
       records: [
@@ -141,7 +149,7 @@ function App() {
     } catch (error) {
       dispatch({ type: todoActions.revertTodo, action: originalTodo });
     } finally {
-      dispatch({type: todoActions.isSaving, action: false})
+      dispatch({ type: todoActions.isSaving, action: false });
     }
   };
 
@@ -164,52 +172,51 @@ function App() {
         const data = await resp.json();
         dispatch({ type: 'loadTodos', action: data });
       } catch (error) {
-        console.log("error: ", error)
+        console.log('error: ', error);
         dispatch({ type: todoActions.setLoadError, action: error });
       }
     };
     fetchTodos();
   }, [sortDirection, sortField, queryString]);
+
+  const location = useLocation();
+
+  useEffect(
+    () => {
+      if (location.pathname === '/') {
+        setTitle('Todo List');
+      } else if (location.pathname === '/about') {
+        setTitle('About');
+      } else {
+        setTitle('Not Found');
+      }
+    },
+    [location]
+  );
+
   return (
     <div className={styles.content}>
-      <h1>My Todos</h1>
-      <TodoForm handleAdd={handleAdd} isSaving={todoState.isSaving} />
-      <TodoList
-        todoList={todoState.todoList}
-        onCompleteTodo={completeTodo}
-        onUpdateTodo={updateTodo}
-        isLoading={
-          todoState.isLoading ? (
-            <p>Todo list loading...</p>
-          ) : (
-            <p>Add a todo above to get started</p>
-          )
-        }
-      />
-      <hr />
-      <TodosViewForm
-        setSortDirection={setSortDirection}
-        setSortField={setSortField}
-        setQueryString={setQueryString}
-        queryString={queryString}
-      />
-      {todoState.errorMessage ? (
-        <div className={styles.errorDiv}>
-          <hr />
-          <p>{todoState.errorMessage}</p>
-          <button
-            type="button"
-            onClick={() => {
-              setIsShowing((prevState) => !prevState);
-              dispatch({ type: 'clearError' });
-            }}
-          >
-            Dismiss
-          </button>{' '}
-        </div>
-      ) : (
-        <></>
-      )}
+      <Header title={title} />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <TodosPage
+              isSaving={todoState.isSaving}
+              todoList={todoState.todoList}
+              completeTodo={completeTodo}
+              updateTodo={updateTodo}
+              handleAdd={handleAdd}
+              setSortDirection={setSortDirection}
+              setSortField={setSortDirection}
+              setQueryString={setQueryString}
+              queryString={queryString}
+            />
+          }
+        ></Route>
+        <Route path="/about" element={<About />}></Route>
+        <Route path="/\/*" element={<NotFound />}></Route>
+      </Routes>
     </div>
   );
 }
