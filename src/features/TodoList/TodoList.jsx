@@ -16,6 +16,8 @@ function TodoList({ todoList, onCompleteTodo, onUpdateTodo }) {
   );
     console.log(filteredTodoList)
 
+    const currentTodos = filteredTodoList.slice(indexOfFirstTodo, indexOfFirstTodo + itemsPerPage);
+
   const totalPages = Math.ceil((filteredTodoList.length / itemsPerPage));
 
   const handlePreviousPage = () => {
@@ -39,7 +41,7 @@ function TodoList({ todoList, onCompleteTodo, onUpdateTodo }) {
   ) : (
     <>
       <ul className={styles.list}>
-        {filteredTodoList.map((todo) => (
+        {currentTodos.map((todo) => (
           <TodoListItem
             key={todo.id}
             todo={todo}
